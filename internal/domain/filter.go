@@ -46,6 +46,7 @@ type FilterRepo interface {
 
 type FilterDownloads struct {
 	HourCount  int
+	Hour72Count int
 	DayCount   int
 	WeekCount  int
 	MonthCount int
@@ -53,13 +54,14 @@ type FilterDownloads struct {
 }
 
 func (f *FilterDownloads) String() string {
-	return fmt.Sprintf("Hour: %d, Day: %d, Week: %d, Month: %d, Total: %d", f.HourCount, f.DayCount, f.WeekCount, f.MonthCount, f.TotalCount)
+	return fmt.Sprintf("Hour: %d, 72h: %d, Day: %d, Week: %d, Month: %d, Total: %d", f.HourCount, f.Hour72Count, f.DayCount, f.WeekCount, f.MonthCount, f.TotalCount)
 }
 
 type FilterMaxDownloadsUnit string
 
 const (
 	FilterMaxDownloadsHour  FilterMaxDownloadsUnit = "HOUR"
+	FilterMaxDownloads72H   FilterMaxDownloadsUnit = "72H"
 	FilterMaxDownloadsDay   FilterMaxDownloadsUnit = "DAY"
 	FilterMaxDownloadsWeek  FilterMaxDownloadsUnit = "WEEK"
 	FilterMaxDownloadsMonth FilterMaxDownloadsUnit = "MONTH"
@@ -671,6 +673,8 @@ func (f *Filter) checkMaxDownloads() bool {
 	switch f.MaxDownloadsUnit {
 	case FilterMaxDownloadsHour:
 		count = f.Downloads.HourCount
+	case FilterMaxDownloads72H:
+		count = f.Downloads.Hour72Count
 	case FilterMaxDownloadsDay:
 		count = f.Downloads.DayCount
 	case FilterMaxDownloadsWeek:

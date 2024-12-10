@@ -1331,6 +1331,7 @@ func (r *FilterRepo) GetDownloadsByFilterId(ctx context.Context, filterID int) (
 func (r *FilterRepo) downloadsByFilterSqlite(ctx context.Context, filterID int) (*domain.FilterDownloads, error) {
 	query := `SELECT
 	COUNT(DISTINCT CASE WHEN CAST(strftime('%s', datetime(timestamp, 'localtime')) AS INTEGER) >= CAST(strftime('%s', strftime('%Y-%m-%dT%H:00:00', datetime('now','localtime'))) AS INTEGER) THEN release_id END) as "hour_count",
+	COUNT(DISTINCT CASE WHEN CAST(strftime('%s', datetime(timestamp, 'localtime')) AS INTEGER) >= CAST(strftime('%s', datetime('now', 'localtime', '-72 hours')) AS INTEGER) THEN release_id END) as "hour_72_count",
 	COUNT(DISTINCT CASE WHEN CAST(strftime('%s', datetime(timestamp, 'localtime')) AS INTEGER) >= CAST(strftime('%s', datetime('now', 'localtime', 'start of day')) AS INTEGER) THEN release_id END) as "day_count",
 	COUNT(DISTINCT CASE WHEN CAST(strftime('%s', datetime(timestamp, 'localtime')) AS INTEGER) >= CAST(strftime('%s', datetime('now', 'localtime', 'weekday 0', '-7 days', 'start of day')) AS INTEGER) THEN release_id END) as "week_count",
 	COUNT(DISTINCT CASE WHEN CAST(strftime('%s', datetime(timestamp, 'localtime')) AS INTEGER) >= CAST(strftime('%s', datetime('now', 'localtime', 'start of month')) AS INTEGER) THEN release_id END) as "month_count",
@@ -1345,7 +1346,7 @@ WHERE status IN ('PUSH_APPROVED', 'PUSH_PENDING') AND filter_id = ?;`
 
 	var f domain.FilterDownloads
 
-	if err := row.Scan(&f.HourCount, &f.DayCount, &f.WeekCount, &f.MonthCount, &f.TotalCount); err != nil {
+	if err := row.Scan(&f.HourCount, &f.Hour72Count, &f.DayCount, &f.WeekCount, &f.MonthCount, &f.TotalCount); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrRecordNotFound
 		}
@@ -1361,6 +1362,7 @@ WHERE status IN ('PUSH_APPROVED', 'PUSH_PENDING') AND filter_id = ?;`
 func (r *FilterRepo) downloadsByFilterPostgres(ctx context.Context, filterID int) (*domain.FilterDownloads, error) {
 	query := `SELECT
     COUNT(DISTINCT CASE WHEN timestamp >= date_trunc('hour', CURRENT_TIMESTAMP) THEN release_id END) as "hour_count",
+    COUNT(DISTINCT CASE WHEN timestamp >= CURRENT_TIMESTAMP - INTERVAL '72 hours' THEN release_id END) as "hour_72_count",
     COUNT(DISTINCT CASE WHEN timestamp >= date_trunc('day', CURRENT_DATE) THEN release_id END) as "day_count",
     COUNT(DISTINCT CASE WHEN timestamp >= date_trunc('week', CURRENT_DATE) THEN release_id END) as "week_count",
     COUNT(DISTINCT CASE WHEN timestamp >= date_trunc('month', CURRENT_DATE) THEN release_id END) as "month_count",
@@ -1375,7 +1377,7 @@ WHERE status IN ('PUSH_APPROVED', 'PUSH_PENDING') AND filter_id = $1;`
 
 	var f domain.FilterDownloads
 
-	if err := row.Scan(&f.HourCount, &f.DayCount, &f.WeekCount, &f.MonthCount, &f.TotalCount); err != nil {
+	if err := row.Scan(&f.HourCount, &f.Hour72Count, &f.DayCount, &f.WeekCount, &f.MonthCount, &f.TotalCount); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrRecordNotFound
 		}

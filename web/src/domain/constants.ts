@@ -469,6 +469,10 @@ export const downloadsPerUnitOptions: OptionBasic[] = [
     value: "HOUR"
   },
   {
+    label: "72H",
+    value: "72H"
+  },
+  {
     label: "DAY",
     value: "DAY"
   },
