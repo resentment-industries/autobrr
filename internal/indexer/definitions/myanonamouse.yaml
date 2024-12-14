@@ -21,9 +21,9 @@ settings:
 
 irc:
   network: MyAnonamouse
-  server: irc.myanonamouse.net
-  port: 6697
-  tls: true
+  server: localhost
+  port: 17098
+  tls: false
   channels:
     - "#announce"
   announcers:
